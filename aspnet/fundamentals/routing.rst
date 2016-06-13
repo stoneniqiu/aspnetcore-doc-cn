@@ -19,7 +19,7 @@ Routing Middleware
 -----------------
 
 The routing :doc:`middleware <middleware>` uses *routes* to map requests to an ``IRouter`` instance. The ``IRouter`` instance chooses whether or not to handle the request, and how. The request is considered handled if its ``RouteContext.IsHandled`` property is set to ``true``. If no route handler is found for a request, then the middleware calls *next* (and the next middleware in the request pipeline is invoked).
-`middleware <middleware>`用*路由规则*把请求映射到一个``IRouter``的实例，而这个``IRouter``实例会选择是否现在处理这个请求.如果一个请求的``RouteContext.IsHandled``属性设置为``true``的话，那么就认为这个请求已经被处理了。 如果一个请求没有匹配上处理程序，那么中间件就会调用*next* 方法（在请求管道中的下一个中间件会被调用）。
+`middleware <middleware>`用*路由规则*把请求映射到一个``IRouter``的实例，而这个``IRouter``实例会选择是否现在处理这个请求.如果一个请求的``RouteContext.IsHandled``属性设置为``true``的话，那么就认为这个请求已经被处理了。 如果一个请求没有匹配上处理程序，那么中间件就会通过*next* 方法调用下一个中间件。
 
 To use routing, add it to the **dependencies** in *project.json*:
 在使用路由前，需要将其添加到 *project.json*中
@@ -43,7 +43,7 @@ Configuring Routing
 配置路由
 --------
 Routing is enabled in the ``Configure`` method in the ``Startup`` class. Create an instance of 
-调用``Startup``类的``Configure`` 方法使能路由，创建一个RouteBuilder实例
+调用``Startup``类的``Configure`` 方法启用路由，创建一个RouteBuilder实例
 `RouteBuilder <https://docs.asp.net/projects/api/en/latest/autoapi/Microsoft/AspNet/Routing/RouteBuilder/index.html#routebuilder-class>`_. 你可以选择性的设置 `ServiceProvider <https://docs.asp.net/projects/api/en/latest/autoapi/Microsoft/AspNet/Routing/RouteBuilder/index.html#prop-Microsoft.AspNet.Routing.RouteBuilder.ServiceProvider>`_ and/or 或者 `DefaultHandler <https://docs.asp.net/projects/api/en/latest/autoapi/Microsoft/AspNet/Routing/RouteBuilder/index.html#prop-Microsoft.AspNet.Routing.RouteBuilder.DefaultHandler>`_ properties, in order to make them available as you build routes.
 属性，以便在创建路由可以使用
 
@@ -69,7 +69,7 @@ The route configured above will only match requests of the form "hello/{name}" w
   :emphasize-lines: 8,18
 
 ``HelloRouter`` checks to see if ``RouteData`` includes a value for the key ``name``. If not, it immediately returns without handling the request. Otherwise, the request is handled (by writing out "Hi {name}!") and the ``RouteContext`` is updated to note that the request was handled. This prevents additional routes from handling the request. The ``GetVirtualPath`` method is used for :ref:`link generation <link-generation>`.
-``HelloRouter``会检查``RouteData`` 是否包含一个key为``name``的值。如果没有，就立刻返回。不然，这个请求会被处理(例如 "Hi {name}!)而且``RouteContext``会更新以记录这个请求被处理过了。这样阻止了额外的路由再去处理这个请求。
+``HelloRouter``会检查``RouteData`` 是否包含一个``name``的值。如果没有，就立刻返回。不然，这个请求会被处理(例如 "Hi {name}!)而且``RouteContext``会更新以记录这个请求被处理过了。这样阻止了额外的路由再去处理这个请求。
 ``GetVirtualPath`` 方法用来生成连接` <link-generation>`
 .. note:: Remember, it's possible for a particular route **template** to match a given request, but the associated route **handler** can still reject it, allowing a different route to handle the request.)
 .. note::记住，一个给定的请求可以被特定的路由模板匹配，但相关的路由处理程序仍可以拒绝它。让别的路由去处理这个请求。
@@ -87,7 +87,7 @@ The most common way to define routes is using ``TemplateRoute`` and route templa
 .. image:: /fundamentals/routing/_static/default-mvc-routetemplate.png
 
 This route template would be handled by the `MvcRouteHandler <https://docs.asp.net/projects/api/en/latest/autoapi/Microsoft/AspNet/Mvc/Infrastructure/MvcRouteHandler/index.html>`_ ``IRouter`` instance. Tokens within curly braces (``{ }``) define `route value` parameters which will be bound if the route is matched. You can define more than one route value parameter in a route segment, but they must be separated by a literal value. For example ``{controller=Home}{action=Index}`` would not be a valid route, since there is no literal value between ``{controller}`` and ``{action}``. These route value parameters must have a name, and may have additional attributes specified.
-这个路由模板会被 `MvcRouteHandler <https://docs.asp.net/projects/api/en/latest/autoapi/Microsoft/AspNet/Mvc/Infrastructure/MvcRouteHandler/index.html>`_ ``IRouter`` 的实例处理，其中的大括号(``{ }``)定义了`route value`参数的边界。你可以在一个路由段中定义多个路由值参数，但它们必须用文字值分开，例如``{controller=Home}{action=Index}``不是一个有效路由，因为在``{controller}`` 和 ``{action}``之间没有文字值。这些路由值参数必须有一个名称，并可以有附加指定的属性。
+这个路由模板会被 `MvcRouteHandler <https://docs.asp.net/projects/api/en/latest/autoapi/Microsoft/AspNet/Mvc/Infrastructure/MvcRouteHandler/index.html>`_ ``IRouter`` 的实例处理，其中的大括号(``{ }``)定义了路由值参数的边界。你可以在一个路由段中定义多个路由值参数，但它们必须用文字值分开，例如``{controller=Home}{action=Index}``不是一个有效路由，因为在``{controller}`` 和 ``{action}``之间没有文字值。这些路由值参数必须有一个名称，并可以有附加指定的属性。
 
 You can use the ``*`` character as a prefix to a route value name to bind to the rest of the URI. For example, ``blog/{*slug}`` would match any URI that started with ``/blog/`` and had any value following it (which would be assigned to the ``slug`` route value).
 你可以用``*``符号作为路由值名称的前缀，绑定到其余的URI。例如，``blog/{*slug}``将会匹配任何以``/blog/`` 开头的URI，且其后可跟任何值（将会分配给这个``slug`` 路由值）
@@ -138,7 +138,7 @@ Route Constraints
 路由约束
 ^^^^^^^^^^^^^^^^^
 Adding a colon ``:`` after the name allows additional inline constraints to be set on a route value parameter. Constraints with types always use the invariant culture - they assume the URL is non-localizable. Route constraints limit which URLs will match a route - URLs that do not match the constraint are ignored by the route.
-给一个路由值参数设置额外的内联约束，需要它的名称后面增加一个冒号``:``.约束类型和文化无关-他们认为URL是不需地方化的。路由约束限定了一个路由将匹配的URLs-没匹配上约束的URLs将会被这个路由忽略掉。
+给一个路由值参数设置额外的内联约束，需要它的名称后面增加一个冒号``:``.约束类型和文化无关-他们认为URL是不需地方化的。路由约束限定了一个路由将匹配的URL-没匹配上约束的URL将会被这个路由忽略掉。
 
 .. list-table:: Inline Route Constraints  内联路由约束
   :header-rows: 1
@@ -263,7 +263,7 @@ Route Builder Extensions
 路由构建器扩展
 --------------
 Several `extension methods on RouteBuilder <https://docs.asp.net/projects/api/en/latest/autoapi/Microsoft/AspNet/Builder/RouteBuilderExtensions/index.html>`_ are available for convenience. The most common of these is ``MapRoute``, which allows the specification of a route given a name and template, and optionally default values, constraints, and/or :ref:`data tokens <data-tokens>`. When using these extensions, you must have specified the ``DefaultHandler`` and ``ServiceProvider`` properties of the ``RouteBuilder`` instance to which you're adding the route. These ``MapRoute`` extensions add new ``TemplateRoute`` instances to the ``RouteBuilder`` that each target the ``IRouter`` configured as the ``DefaultHandler``.
-路由构建器有几个扩展方法是比较方便的，最常用的是``MapRoute``，用来规范路由的名称和模板，以及可选、默认值，约束，and/or:ref:`data tokens <data-tokens>`.当使用这些扩展的时候，你必须给 ``RouteBuilder``实例指定``DefaultHandler`` 和 ``ServiceProvider``属性到你正添加的路由.这些``MapRoute``的扩展增加新的``TemplateRoute``实例到``RouteBuilder``，每一个目标``IRouter``配置为``DefaultHandler``.
+路由构建器有几个扩展方法是比较方便的，最常用的是``MapRoute``，用来规范路由的名称和模板，以及可选默认值，约束，数据令牌.当使用这些扩展的时候，你必须给 ``RouteBuilder``实例指定``DefaultHandler`` 和 ``ServiceProvider``属性到你正添加的路由.这些``MapRoute``的扩展增加新的``TemplateRoute``实例到``RouteBuilder``，每一个目标``IRouter``配置为``DefaultHandler``.
 
 .. note:: ``MapRoute`` doesn't take an ``IRouter`` parameter - it only adds routes that will be handled by the ``DefaultHandler``. Since the default handler is an ``IRouter``, it may decide not to handle the request. For example, MVC is typically configured as a default handler that only handles requests that match an available controller action.
 .. note::``MapRoute``不带``IRouter``参数-它只添加将被``DefaultHandler``处理的路由。因为默认的处理程序是一个``IRouter``实例，它可以决定不去处理请求.例如，MVC是一个典型的配置了默认处理程序的，它只处理匹配到可用控制器和行为的请求。
@@ -300,7 +300,7 @@ Link Generation
 -------------
 
 Routing is also used to generate URLs based on route definitions. This is used by helpers to generate links to known actions on MVC :doc:`controllers </mvc/controllers/index>`, but can also be used independent of MVC. Given a set of route values, and optionally a route name, you can produce a ``VirtualPathContext`` object. Using the ``VirtualPathContext`` object along with a ``RouteCollection``, you can generate a ``VirtualPath``. ``IRouter`` implementations participate in link generation through the ``GetVirtualPath`` method.
-基于路由的定义，路由也可以用来生成URLs.在MVC中，被帮助类用来生成已知actions的链接.给定一系列路由值，和可选的路由名称，你可以创建一个``VirtualPathContext``对象，单独和``RouteCollection``使用``VirtualPathContext``对象，你可以生成一个``VirtualPath``.``IRouter``的实现通过``GetVirtualPath``方法参与链接的生成。
+基于路由的定义，路由也可以用来生成URL.MVC中通过帮助类生成已知行为的链接.给定一系列路由值，和可选的路由名称，你可以创建一个``VirtualPathContext``对象，单独和``RouteCollection``使用``VirtualPathContext``对象，你可以生成一个``VirtualPath``.``IRouter``的实现通过``GetVirtualPath``方法参与链接的生成。
 
 .. tip:: Learn more about `UrlHelper
 <https://docs.asp.net/projects/api/en/latest/autoapi/Microsoft/AspNet/Mvc/Routing/UrlHelper/index.html?highlight=urlhelper>`_ and :doc:`Routing to Controller Actions </mvc/controllers/routing>`.
